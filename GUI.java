@@ -24,11 +24,11 @@ public class GUI extends JFrame implements ActionListener {
     JButton check = new JButton("Check");
     JButton raise = new JButton("Raise");
     JButton call = new JButton("Call");
-    //JButton showCards = new JButton("showCards");
+    JButton showCards = new JButton("showCards");
     JPanel a_i_HoleCards = new JPanel();
     static JLabel[] a_i_card;
     JPanel opponentHoleCards = new JPanel();
-    JLabel[] opponentCard;
+    static JLabel[] opponentCard;
     JPanel communityCards = new JPanel();
     JPanel community;
     static JLabel[] communityCard;
@@ -38,12 +38,15 @@ public class GUI extends JFrame implements ActionListener {
     static double a_i_ChipsAmount=1569.70;
     static JLabel opponentChips;
     static double opponentChipsAmount=1753.07;
-    int raisedBy;
+    double raisedBy;
     static ArrayList<Player> playersIn = new ArrayList<Player>();//contains all the players still playing
     static ArrayList<Player> playersOut = new ArrayList<Player>();//contains all the players that are out of the game
     static Player ai = new Player();
     static Player opponent = new Player();
     static int round=0;
+    static String gameCurrentRound="";
+    static String gameNextRound="";
+    static boolean showDown;
     static boolean turn;
     static int littleBlind;
     static int bigBlind;
@@ -58,6 +61,7 @@ public class GUI extends JFrame implements ActionListener {
     static ArrayList<Card> allCommunityCards = new ArrayList<Card>();
     static int emotion;
     static double prediction;
+    static JLabel turnSign;
     public GUI(int h, int w) throws IOException {
     	
     	icon = new ImageIcon[4];
@@ -71,11 +75,13 @@ public class GUI extends JFrame implements ActionListener {
     	JPanel b = new JPanel();        
     	JPanel d = new JPanel();
     	
+    	BufferedImage blankImg=ImageIO.read(new File("img/blank.png"));
+    	ImageIcon blankIcon=new ImageIcon(blankImg);
         opponentCard = new JLabel[2];
         opponentCard[0]= new JLabel("", JLabel.LEFT);
         opponentCard[1]= new JLabel("", JLabel.LEFT);
-        opponentCard[0].setIcon(icon[0]);
-        opponentCard[1].setIcon(icon[1]);
+        opponentCard[0].setIcon(blankIcon);
+        opponentCard[1].setIcon(blankIcon);
         opponentHoleCards.add(opponentCard[0]);
         opponentHoleCards.add(opponentCard[1]);
         opponentHoleCards.setBackground(bl2);
@@ -86,6 +92,7 @@ public class GUI extends JFrame implements ActionListener {
         bottomPanel.setLayout(new GridLayout(1, 3));
         bottomPanel.add(opponentHoleCards);
         opponentChips =new JLabel("Chips:", JLabel.CENTER);
+        opponentChips.setFont(opponentChips.getFont().deriveFont(14f));
         bottomPanel.add(opponentChips);
         bottomPanel.setBackground(bl2);
         d.add(bottomPanel);
@@ -108,14 +115,12 @@ public class GUI extends JFrame implements ActionListener {
         a_i_card = new JLabel[2];
         a_i_card[0]= new JLabel("", JLabel.LEFT);
         a_i_card[1]= new JLabel("", JLabel.LEFT);
-        BufferedImage blankImg=ImageIO.read(new File("img/blank.png"));
-    	ImageIcon blankIcon=new ImageIcon(blankImg);
     	a_i_card[0].setIcon(blankIcon);
     	a_i_card[1].setIcon(blankIcon);
         
         a_i_HoleCards.add(a_i_card[0]);
         a_i_HoleCards.add(a_i_card[1]);
-        //a_i_HoleCards.add(showCards);
+        a_i_HoleCards.add(showCards);
         a_i_HoleCards.setBackground(bl2);
         
         JPanel topPanel = new JPanel();
@@ -124,6 +129,7 @@ public class GUI extends JFrame implements ActionListener {
         topPanel.add(a_i_HoleCards);
         topPanel.setBackground(bl2);
         a_i_Chips = new JLabel("Chips:", JLabel.CENTER);
+        a_i_Chips.setFont(a_i_Chips.getFont().deriveFont(14f));
         topPanel.add(a_i_Chips);
         a.add(topPanel);
         a.setBackground(bl2);
@@ -147,60 +153,19 @@ public class GUI extends JFrame implements ActionListener {
         community = new JPanel();
         community.setLayout(new FlowLayout());
         community.add(communityCards);
-        pot = new JLabel("Pot:", JLabel.CENTER);
+        pot = new JLabel("Pot: 0", JLabel.CENTER);
+        pot.setFont(pot.getFont().deriveFont(14f));
         community.add(pot);
+        turnSign = new JLabel("", JLabel.CENTER);
+        turnSign.setFont(turnSign.getFont().deriveFont(14f));
+        b.add(turnSign);
         b.add(community);
         b.setVisible(false);
         this.add(b,"Center");
         
         
         //this.setBackground(Color.ORANGE);
-         Random random = new Random();
-         double ran=random.nextDouble();
-        if(ran>0.5)
-        {
-        	 littleBlind=5;//HAVE TO MAKE THE BLIND VISSIBLE TO THE PLAYER
-        	 ai.raise(littleBlind);
- 			setNumberOfChips("a_i", littleBlind);
-     		boolean blind;
-     		do{
-     			blind=true;
-     		try{
-     			bigBlind = Integer.parseInt(JOptionPane.showInputDialog("The small blind is £5. Enter the big blind for the game:"));
-     		}catch(InputMismatchException |  NumberFormatException ex)
-     		{
-     			blind=false;
-     		}
-     		
-     		}while(blind==false);
-     		opponent.raise(bigBlind);
-			setNumberOfChips("opponent", bigBlind);
-        	turn=true;
-        }
-        else
-        {	
-     		boolean blind;
-     		do{
-     			blind=true;
-     		try{
-     			littleBlind = Integer.parseInt(JOptionPane.showInputDialog("Enter the small blind for the game:"));
-     		}catch(InputMismatchException |  NumberFormatException ex)
-     		{
-     			blind=false;
-     		}
-     		
-     		}while(blind==false);
-     		opponent.raise(littleBlind);
-			setNumberOfChips("opponent", littleBlind);
-			
-     		bigBlind=littleBlind*2;
-     		ai.raise(bigBlind);
-			setNumberOfChips("a_i", bigBlind);
-			
-     		turn=false;
-        }
-        setNumberOfChips("pot", opponent.getBet()+ai.getBet());
-       
+         
 		
 		d.setVisible(true);
 		a.setVisible(true);
@@ -215,7 +180,8 @@ public class GUI extends JFrame implements ActionListener {
 	        check.addActionListener(this);
 	        raise.addActionListener(this);
 	        call.addActionListener(this);
-	       //showCards.addActionListener(this);
+	        showCards.addActionListener(this);
+	        //showCards.addMouseListener(new java.awt.event.mo);
     }
 
     public static void setNumberOfChips(String check, double chips)
@@ -231,7 +197,7 @@ public class GUI extends JFrame implements ActionListener {
     	else if(check.equalsIgnoreCase("pot"))
     	{
     		//potAmount = chips;
-    		pot.setText("Pot: "+ Double.toString(chips));
+    		pot.setText("Pot: "+ Double.toString(potAmount));
     	}
     }
     
@@ -271,6 +237,45 @@ public class GUI extends JFrame implements ActionListener {
     	emotion = Integer.parseInt(sc.next());
     }
     
+    public static void checkRound()
+    {
+    	if(ai.getBet()==opponent.getBet() && inRoundTurns>1)
+    	{
+    		round++;
+    		inRoundTurns=0;
+    		if(round==1)
+        	{
+    			//trainNetwork("FLOP", "TURN");
+        		communityCard[0].setVisible(true);
+        		communityCard[1].setVisible(true);
+        		communityCard[2].setVisible(true);
+        		gameCurrentRound="FLOP";
+        		gameNextRound="TURN";
+        		emotionDetection();
+        	}
+        	else if(round==2)
+        	{
+        		//trainNetwork("TURN", "RIVER");
+        		communityCard[3].setVisible(true);
+        		gameCurrentRound="TURN";
+        		gameNextRound="RIVER";
+        		emotionDetection();
+        	}
+        	else if(round==3)
+        	{
+        		//trainNetwork("RIVER", "SHOW DOWN");
+        		communityCard[4].setVisible(true);
+        		gameCurrentRound="RIVER";
+        		gameNextRound="SHOW DOWN";
+        		emotionDetection();
+        	}
+        	else if(round==4){
+        		showDown=true;
+        	}
+    	}
+    	
+    }
+    
     public void actionPerformed(ActionEvent e) {
     	boolean checkReponse= false;
     	//System.out.println(Thread.currentThread().getName());
@@ -284,22 +289,35 @@ public class GUI extends JFrame implements ActionListener {
         		do{
         			matchType=true;
         			try{
-        				raisedBy = Integer.parseInt(JOptionPane.showInputDialog("Enter the amount you want to raise by:"));
+        				raisedBy = Double.parseDouble(JOptionPane.showInputDialog("Enter the amount you want to raise by:"));
         			}catch(InputMismatchException |  NumberFormatException ex)
         			{
         				matchType=false;
         			}
         		
+        			if(matchType==true)
+        				if(raisedBy>opponent.getMoney()){
+        					matchType=false;
+        					JOptionPane.showMessageDialog(null, "You raised by an amount that is bigger than you currently have, raising within the amount you have. ");
+        				}
+        				
+        			
         		}while(matchType==false);
-        		
-        		if(raisedBy>opponent.getMoney())
-        			opponent.raise(opponent.getMoney());
+        		System.out.println(ai.getBet()+ raisedBy +"    "+ opponent.getBet());
+        		if((opponent.getBet()+ raisedBy)>=ai.getBet())
+        		{
+        				opponent.raise(raisedBy);
+        				potAmount = potAmount + raisedBy;
+        				setNumberOfChips("opponent", raisedBy);
+        				setNumberOfChips("pot", potAmount);
+                		turn=true;
+                		inRoundTurns++;
+        		}
         		else
-        			opponent.raise(raisedBy);
+        		{
+        			JOptionPane.showMessageDialog(null, "You either need to bet the same or more than your opponent or pick another option");
+        		}
         		
-        		setNumberOfChips("opponent", raisedBy);
-        		turn=true;
-        		inRoundTurns++;
     		}
     		else if(e.getSource()==check)
     		{
@@ -315,7 +333,9 @@ public class GUI extends JFrame implements ActionListener {
     			{
     				double temp =ai.getBet()-opponent.getBet();
     				opponent.raise(temp);
+    				potAmount = potAmount + temp;
     				setNumberOfChips("opponent", raisedBy);
+    				setNumberOfChips("pot", potAmount);
     				turn=true;
     				inRoundTurns++;
     			}
@@ -326,6 +346,12 @@ public class GUI extends JFrame implements ActionListener {
     			System.out.println("FOLD");
     		}
         }
+    	
+    	if(e.getSource()==showCards  && (showDown==true || ai.getActive()==false || opponent.getActive()==false))
+		{
+			a_i_card[0].setIcon(icon[2]);
+			a_i_card[1].setIcon(icon[3]);
+		}
     }
 
   
@@ -335,23 +361,90 @@ public class GUI extends JFrame implements ActionListener {
 //        } catch (Exception e) {
 //            System.out.println(e.toString());
 //        }
-    	 network = new NeuralNetwork(2, 4, 1);
-         int maxRuns =5000;
-         double minErrorCondition = 0.001;
-         network.run(maxRuns, minErrorCondition);
-    	 try {
-             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-         } catch (Exception e) {
-             System.out.println(e.toString());
-         }
+    	try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
     	
+    	
+    	network = new NeuralNetwork(2, 4, 1);
+        int maxRuns =5000;
+        double minErrorCondition = 0.001;
+        network.run(maxRuns, minErrorCondition);
+
         new GUI(10, 4);
-        
-		playersIn.add(ai);
-		playersIn.add(opponent);
-		String currentRound="";
-		String nextRound="";
-		boolean showDown=false;
+         
+ 		playersIn.add(ai);
+ 		playersIn.add(opponent);
+ 		
+    	
+    	
+    	Random random = new Random();
+        double ran=random.nextDouble();
+       if(ran>0.5)
+       {
+       	 littleBlind=5;//HAVE TO MAKE THE BLIND VISSIBLE TO THE PLAYER
+       	 ai.raise(littleBlind);
+			setNumberOfChips("a_i", littleBlind);
+    		boolean blind;
+    		do{
+    			blind=true;
+    		try{
+    			bigBlind = Integer.parseInt(JOptionPane.showInputDialog("The small blind is £5. Enter the big blind for the game:"));
+    		}catch(InputMismatchException |  NumberFormatException ex)
+    		{
+    			blind=false;
+    		}
+    		
+    		if(blind==true)
+    			if(bigBlind<=littleBlind)
+    				blind=false;
+    		
+    		}while(blind==false);
+    		opponent.raise(bigBlind);
+			setNumberOfChips("opponent", bigBlind);
+       	turn=true;
+       }
+       else
+       {	
+    		boolean blind;
+    		do{
+    			blind=true;
+    		try{
+    			littleBlind = Integer.parseInt(JOptionPane.showInputDialog("Enter the small blind for the game:"));
+    		}catch(InputMismatchException |  NumberFormatException ex)
+    		{
+    			blind=false;
+    		}
+    		
+    		}while(blind==false);
+    		opponent.raise(littleBlind);
+			setNumberOfChips("opponent", littleBlind);
+			
+    		bigBlind=littleBlind*2;
+    		ai.raise(bigBlind);
+			setNumberOfChips("a_i", bigBlind);
+			
+    		turn=false;
+       }
+       setNumberOfChips("pot", opponent.getBet()+ai.getBet());
+       System.out.println(ai.getBet() +"    "+ opponent.getBet());
+    	
+    	
+       opponentCard[0].setIcon(icon[0]);
+       opponentCard[1].setIcon(icon[1]);
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+       
+       showDown=false;
 		do{
 //			if(turn==true){
 //				System.out.println(Thread.currentThread().getName());
@@ -360,6 +453,13 @@ public class GUI extends JFrame implements ActionListener {
 //			{
 //				System.out.println("false");
 //			}
+			
+			if(turn==true){
+				
+				turnSign.setText("Turn: A.I");
+			}else{
+				turnSign.setText("Turn: Opponent");
+			}
 			
 			if(ai.getActive()==true && opponent.getActive()==true && turn==true)
         	{  
@@ -377,11 +477,11 @@ public class GUI extends JFrame implements ActionListener {
 						trainNetwork(1, "RIVER", "SHOW DOWN");
 					
 					ArrayList<Double> testInput=new ArrayList<Double>();
-					DFO d = new DFO();
-					double allCommunityCardsValue=d.calculate(allCommunityCards);
+					WeightingCards wt = new WeightingCards();
+					double allCommunityCardsValue=wt.evaluate(allCommunityCards);
 					testInput.add(allCommunityCardsValue);
 					testInput.add(difference);	
-					System.out.println(testInput);
+					System.out.println("testinput "+testInput);
 					getPrediction(testInput);
 					double raise = prediction;
 					
@@ -423,40 +523,7 @@ public class GUI extends JFrame implements ActionListener {
         		
         	}
 			
-			if(ai.getBet()==opponent.getBet() && inRoundTurns>1)
-	    	{
-	    		round++;
-	    		inRoundTurns=0;
-	    		if(round==1)
-	        	{
-	    			//trainNetwork("FLOP", "TURN");
-	        		communityCard[0].setVisible(true);
-	        		communityCard[1].setVisible(true);
-	        		communityCard[2].setVisible(true);
-	        		currentRound="FLOP";
-	        		nextRound="TURN";
-	        		emotionDetection();
-	        	}
-	        	else if(round==2)
-	        	{
-	        		//trainNetwork("TURN", "RIVER");
-	        		communityCard[3].setVisible(true);
-	        		currentRound="TURN";
-	        		nextRound="RIVER";
-	        		emotionDetection();
-	        	}
-	        	else if(round==3)
-	        	{
-	        		//trainNetwork("RIVER", "SHOW DOWN");
-	        		communityCard[4].setVisible(true);
-	        		currentRound="RIVER";
-	        		nextRound="SHOW DOWN";
-	        		emotionDetection();
-	        	}
-	        	else if(round==4){
-	        		showDown=true;
-	        	}
-	    	}
+			checkRound();
 			
 			
 			try {
@@ -467,8 +534,34 @@ public class GUI extends JFrame implements ActionListener {
 			}
 			//System.out.println(turn);
 		}while(ai.getActive()==true && opponent.getActive()==true && showDown==false);
-		a_i_card[0].setIcon(icon[2]);
-    	a_i_card[1].setIcon(icon[3]);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		if(showDown==true)
+		{
+			a_i_card[0].setIcon(icon[2]);
+			a_i_card[1].setIcon(icon[3]);
+		}
+		
     	if(ai.getActive()==false && opponent.getActive()==true && showDown==false)
     	{
     		System.out.println("YOU HAVE WON!!!!");

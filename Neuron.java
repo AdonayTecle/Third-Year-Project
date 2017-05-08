@@ -7,7 +7,7 @@ public class Neuron {
     final double bias = 1;
     double output;
      
-    ArrayList<Connection> Inconnections = new ArrayList<Connection>();
+    ArrayList<Connection> allConnections = new ArrayList<Connection>();
     HashMap<Integer,Connection> connectionLookup = new HashMap<Integer,Connection>();
      
     public Neuron(){        
@@ -22,7 +22,7 @@ public class Neuron {
      */
     public void calculateOutput(){
         double s = 0;
-        for(Connection con : Inconnections){
+        for(Connection con : allConnections){
             Neuron leftNeuron = con.getFromNeuron();
             double weight = con.getWeight();
             double a = leftNeuron.getOutput(); //output from previous layer
@@ -41,8 +41,8 @@ public class Neuron {
      
     public void addConnections(ArrayList<Neuron> neurons){
         for(Neuron n: neurons){
-            Connection con = new Connection(n,this);
-            Inconnections.add(con);
+            Connection con = new Connection(n);
+            allConnections.add(con);
             connectionLookup.put(n.id, con);
         }
     }
@@ -52,12 +52,12 @@ public class Neuron {
     }
  
     public void addBiasConnection(Neuron n){
-        Connection con = new Connection(n,this);
+        Connection con = new Connection(n);
         biasConnection = con;
-        Inconnections.add(con);
+        allConnections.add(con);
     }
     public ArrayList<Connection> getAllConnections(){
-        return Inconnections;
+        return allConnections;
     }
     
     public double getOutput() {

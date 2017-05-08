@@ -231,8 +231,10 @@ public class ReadData {
 //			System.out.println(y);
 //		}
 		
-		DFO d = new DFO();
-    	for(int u=0;u<input.size();u++)
+		//DFO d = new DFO();
+    	WeightingCards wt = new WeightingCards();
+		
+		for(int u=0;u<input.size();u++)
     	{
     		ArrayList<Card> testTemp=new ArrayList<Card>();
     		for(String test2:input.get(u)){
@@ -240,7 +242,8 @@ public class ReadData {
     			a.create(test2);
     			testTemp.add(a);
     		}
-    		double temp2=d.calculate(testTemp);
+    		//double temp2=d.calculate(testTemp);
+    		double temp2 = wt.evaluate(testTemp);
     		ArrayList<Double> t = new ArrayList<Double>();
     		t.add(temp2);
     		if(choice==0)

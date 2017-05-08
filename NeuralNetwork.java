@@ -8,7 +8,7 @@ public class NeuralNetwork {
     final static ArrayList<Neuron> hiddenLayer = new ArrayList<Neuron>();
     final static ArrayList<Neuron> outputLayer = new ArrayList<Neuron>();
     final Neuron bias = new Neuron();
-    final int[] layers;
+    //final int[] layers;
     final int randomWeightMultiplier = 1;
     final double epsilon = 0.00000000000001;
  
@@ -20,91 +20,34 @@ public class NeuralNetwork {
     static ArrayList<double[]> predictedOutputs = new ArrayList<double[]>();
     static double output[];
     static int what=0;
-
-    
-//  public static void main(String[] args) throws IOException {
-//	
-//	ReadData rd = new ReadData("FORMATTED_abs NLH handhq_2-OBFUSCATED.txt", 0, "RIVER", "SHOW DOWN");
-//	inputs = rd.inputs;
-//	actualOutputs = rd.actualOutputs;
-//	System.out.println("actualOutputs size "+actualOutputs.size());
-//	System.out.println("actualOutputs size "+actualOutputs.size());
-//	for(int i=0;i<actualOutputs.size()-1;i++){
-//		double ab[] = {-1};
-//		predictedOutputs.add(ab);	
-//	}
-//	
-//	
-//    NeuralNetwork nn = new NeuralNetwork(2, 4, 1);
-//    int maxRuns =5000;
-//    double minErrorCondition = 0.001;
-//    nn.run(maxRuns, minErrorCondition);
-//    
-//    ReadData rd2 = new ReadData("FORMATTED_abs NLH handhq_2-OBFUSCATED.txt",0, "RIVER", "SHOW DOWN");
-//    inputs.clear();
-//    actualOutputs.clear();
-//	inputs = rd2.inputs;
-//	actualOutputs = rd2.actualOutputs;
-//	
-//	for(int i=0;i<actualOutputs.size()-1;i++){
-//		double ab[] = {-1};
-//		predictedOutputs.add(ab);	
-//	}
-//	double error = 1;
-//	int count=0;
-//	
-//	for (int p = 0; p < inputs.size()-1; p++)
-//	{
-//		feedForward(inputs.get(p));
-//          
-//		output = getOutput();
-//		predictedOutputs.set(p, output);
-//          
-//		for (int j = 0; j < (actualOutputs.get(p).length); j++) 
-//		{	 
-//			double err = Math.pow(predictedOutputs.get(j)[0] - actualOutputs.get(p)[j], 2);
-//			error += err;
-//              
-//			if(err<1)
-//				count++;       
-//		}
-//	}
-//	  System.out.println("Correctly guessed amount are : "+count+"  / "+actualOutputs.size());
-//}
  
     public NeuralNetwork(int input, int hidden, int output) {
-        this.layers = new int[] { input, hidden, output };
         
          // Create all neurons and connections Connections are created in the neuron class
          
-        for (int i = 0; i < layers.length; i++) {
-            if (i == 0) { // input layer
-                for (int j = 0; j < layers[i]; j++) {
-                    Neuron neuron = new Neuron();
-                    inputLayer.add(neuron);
-                }
-            } else if (i == 1) { // hidden layer
-                for (int j = 0; j < layers[i]; j++) {
-                    Neuron neuron = new Neuron();
-                    neuron.addConnections(inputLayer);
-                    neuron.addBiasConnection(bias);
-                    hiddenLayer.add(neuron);
-                }
-            }
+    	for (int j = 0; j < input; j++) 
+    	{
+    		Neuron neuron = new Neuron();
+    		inputLayer.add(neuron);
+    	}
+         
+    	for (int j = 0; j < hidden; j++) 
+    	{
+    		Neuron neuron = new Neuron();
+    		neuron.addConnections(inputLayer);
+    		neuron.addBiasConnection(bias);
+    		hiddenLayer.add(neuron);
+    	}
+            
+    	for (int j = 0; j < output; j++)
+    	{
+    		Neuron neuron = new Neuron();
+    		neuron.addConnections(hiddenLayer);
+    		neuron.addBiasConnection(bias);
+    		outputLayer.add(neuron);
+    	}
  
-            else if (i == 2) { // output layer
-                for (int j = 0; j < layers[i]; j++) {
-                    Neuron neuron = new Neuron();
-                    neuron.addConnections(hiddenLayer);
-                    neuron.addBiasConnection(bias);
-                    outputLayer.add(neuron);
-                }
-            } else {
-                System.out.println("!Error NeuralNetwork init");
-            }
-        }
- 
-        // initialize random weights
+        // initialise weights randomly
         for (Neuron neuron : hiddenLayer) {
             ArrayList<Connection> connections = neuron.getAllConnections();
             for (Connection conn : connections) {
@@ -122,7 +65,7 @@ public class NeuralNetwork {
  
         // reset id counters
         Neuron.counter = 0;
-        Connection.counter = 0;
+      //  Connection.counter = 0;
     }
  
     // random
@@ -169,16 +112,16 @@ public class NeuralNetwork {
 //            }
 //        }
  
-        int i = 0;
+        int i = 0;//keeps track which output layer neuron its on
         for (Neuron n : outputLayer) {
             ArrayList<Connection> connections = n.getAllConnections();
             for (Connection con : connections) {
-                double ak = n.getOutput();
-                double ai = con.from.getOutput();
-                double desiredOutput = actualOutput[i];
+                double PredictedNeuronOutput = n.getOutput();//predicted output
+                double hiddenNeuronOutput = con.from.getOutput();//output from neuron in the hidden layer connected to the output neuron
+                double expectedOutput = actualOutput[i];//actual output
  
-                double partialDerivative = -ak * (1 - ak) * ai * (desiredOutput - ak);
-                double deltaWeight = -learningRate * partialDerivative;
+                double deltaWeight = -learningRate*-PredictedNeuronOutput * (1 - PredictedNeuronOutput) * hiddenNeuronOutput * (expectedOutput - PredictedNeuronOutput);
+               // double deltaWeight = -learningRate * partialDerivative;
                 double newWeight = con.getWeight() + deltaWeight;
                 con.setDeltaWeight(deltaWeight);
                 con.setWeight(newWeight + (momentum * con.getPrevDeltaWeight()));
@@ -190,8 +133,8 @@ public class NeuralNetwork {
         for (Neuron n : hiddenLayer) {
             ArrayList<Connection> connections = n.getAllConnections();
             for (Connection con : connections) {
-                double aj = n.getOutput();
-                double ai = con.from.getOutput();
+                double hiddenOutPut = n.getOutput();//output of the neuron in the hidden layer
+                double ai = con.from.getOutput();//input from the 
                 double sumKoutputs = 0;
                 int j = 0;
                 for (Neuron out_neu : outputLayer) {
@@ -202,11 +145,11 @@ public class NeuralNetwork {
                     sumKoutputs = sumKoutputs + (-(desiredOutput - ak) * ak * (1 - ak) * wjk);
                 }
  
-                double partialDerivative = aj * (1 - aj) * ai * sumKoutputs;
+                double partialDerivative = hiddenOutPut * (1 - hiddenOutPut) * ai * sumKoutputs;
                 double deltaWeight = -learningRate * partialDerivative;
                 double newWeight = con.getWeight() + deltaWeight;
                 con.setDeltaWeight(deltaWeight);
-                con.setWeight(newWeight + (momentum * con.getPrevDeltaWeight()));
+                con.setWeight(newWeight + (momentum * con.getPrevDeltaWeight()));//weight updated
             }
         }
     }

@@ -5,34 +5,47 @@ import java.util.Map;
 
 public class WeightingCards {
 
-	public int evaluate(int n, ArrayList<Card>list)
+	public int evaluate(ArrayList<Card>list)
 	{
 		int num=0;
-		  switch (n) {
-          case 1:  num= pair(list);
-                   break;
-          case 2:  num= twoPairs(list);
-                   break;
-          case 3:  num= threeOfAKind(list);
-                   break;
-          case 4:  num= straight(list);
-                   break;
-          case 5:  num= flush(list);
-                   break;
-          case 6:  num= fullHouse(list);
-                   break;
-          case 7:  num= fourOfAKind(list);
-                   break;
-          case 8:  num= straightFlush(list);
-                   break;
-          case 9:  num= royalFlush(list);
-                   break;
-          default: System.out.println(" ");
-                   break;
-      }
-		  return num;
-
+		for(int i=9; i>0;i--)
+		{	
+			num = check(i, list);
+			if(num!=0)
+				return num;	
+		}
+		
+		return num;
 	}
+	
+	public int check(int n, ArrayList<Card>list){
+		
+		int num=0;
+		  switch (n) {
+        case 1:  num= pair(list);
+                 break;
+        case 2:  num= twoPairs(list);
+                 break;
+        case 3:  num= threeOfAKind(list);
+                 break;
+        case 4:  num= straight(list);
+                 break;
+        case 5:  num= flush(list);
+                 break;
+        case 6:  num= fullHouse(list);
+                 break;
+        case 7:  num= fourOfAKind(list);
+                 break;
+        case 8:  num= straightFlush(list);
+                 break;
+        case 9:  num= royalFlush(list);
+                 break;
+        default: System.out.println(" ");
+                 break;
+    }
+		  return num;
+	}
+	
 
 	public int royalFlush(ArrayList<Card>community)//checks if hand is a royal flush or not
 	{
